@@ -1,0 +1,327 @@
+#
+#  Panoramix v4 Oct 2019 
+#  Decompiled source of 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB
+# 
+#  Let's make the world open source 
+# 
+
+def storage:
+  imageHash is array of uint256 at storage 0
+  stor1 is addr at storage 1
+  standard is array of uint256 at storage 2
+  name is array of uint256 at storage 3
+  symbol is array of uint256 at storage 4
+  decimals is uint8 at storage 5
+  totalSupply is uint256 at storage 6
+  nextPunkIndexToAssign is uint256 at storage 7
+  allPunksAssigned is uint8 at storage 8
+  punksRemainingToAssign is uint256 at storage 9
+  punkIndexTo is mapping of addr at storage 10
+  balanceOf is mapping of uint256 at storage 11
+  punksOfferedForSale is mapping of struct at storage 12
+  punkBids is mapping of struct at storage 13
+  pendingWithdrawals is mapping of uint256 at storage 14
+
+def name(): # not payable
+  return name[0 len name.length]
+
+def punksOfferedForSale(uint256 _param1): # not payable
+  return bool(punksOfferedForSale[_param1].field_0), 
+         punksOfferedForSale[_param1].field_256,
+         punksOfferedForSale[_param1].field_512,
+         punksOfferedForSale[_param1].field_768,
+         punksOfferedForSale[_param1].field_1024
+
+def totalSupply(): # not payable
+  return totalSupply
+
+def decimals(): # not payable
+  return decimals
+
+def imageHash(): # not payable
+  return imageHash[0 len imageHash.length]
+
+def nextPunkIndexToAssign(): # not payable
+  return nextPunkIndexToAssign
+
+def punkIndexToAddress(uint256 _param1): # not payable
+  return punkIndexTo[_param1]
+
+def standard(): # not payable
+  return standard[0 len standard.length]
+
+def punkBids(uint256 _param1): # not payable
+  return bool(punkBids[_param1].field_0), punkBids[_param1].field_256, punkBids[_param1].field_512, punkBids[_param1].field_768
+
+def balanceOf(address _owner): # not payable
+  return balanceOf[_owner]
+
+def allPunksAssigned(): # not payable
+  return bool(allPunksAssigned)
+
+def symbol(): # not payable
+  return symbol[0 len symbol.length]
+
+def punksRemainingToAssign(): # not payable
+  return punksRemainingToAssign
+
+def pendingWithdrawals(address _param1): # not payable
+  return pendingWithdrawals[_param1]
+
+#
+#  Regular functions
+#
+
+def _fallback() payable: # default function
+  revert
+
+def allInitialOwnersAssigned(): # not payable
+  require stor1 == caller
+  allPunksAssigned = 1
+
+def withdraw(): # not payable
+  require allPunksAssigned
+  pendingWithdrawals[caller] = 0
+  call caller with:
+     value pendingWithdrawals[caller] wei
+       gas 2300 * is_zero(value) wei
+  require ext_call.success
+
+def getPunk(uint256 _punkIndex): # not payable
+  require allPunksAssigned
+  require punksRemainingToAssign
+  require not punkIndexTo[_punkIndex]
+  require _punkIndex < 10000
+  punkIndexTo[_punkIndex] = caller
+  balanceOf[caller]++
+  punksRemainingToAssign--
+  log Assign(
+        address to=_punkIndex,
+        uint256 punkIndex=caller)
+
+def punkNoLongerForSale(uint256 _punkIndex): # not payable
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require _punkIndex < 10000
+  punksOfferedForSale[_punkIndex].field_0 = 0
+  punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+  punksOfferedForSale[_punkIndex].field_512 = caller
+  punksOfferedForSale[_punkIndex].field_768 = 0
+  punksOfferedForSale[_punkIndex].field_1024 = 0
+  log PunkNoLongerForSale(uint256 punkIndex=_punkIndex)
+
+def setInitialOwner(address _to, uint256 _punkIndex): # not payable
+  require stor1 == caller
+  require not allPunksAssigned
+  require _punkIndex < 10000
+  if punkIndexTo[_punkIndex] != _to:
+      if not punkIndexTo[_punkIndex]:
+          punksRemainingToAssign--
+      else:
+          balanceOf[stor10[_punkIndex]]--
+      punkIndexTo[_punkIndex] = _to
+      balanceOf[addr(_to)]++
+      log Assign(
+            address to=_punkIndex,
+            uint256 punkIndex=_to)
+
+def offerPunkForSaleToAddress(uint256 _punkIndex, uint256 _minSalePriceInWei, address _toAddress): # not payable
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require _punkIndex < 10000
+  punksOfferedForSale[_punkIndex].field_0 = 1
+  punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+  punksOfferedForSale[_punkIndex].field_512 = caller
+  punksOfferedForSale[_punkIndex].field_768 = _minSalePriceInWei
+  punksOfferedForSale[_punkIndex].field_1024 = _toAddress
+  log PunkOffered(
+        uint256 punkIndex=_minSalePriceInWei,
+        uint256 minValue=_punkIndex,
+        address toAddress=_toAddress)
+
+def offerPunkForSale(uint256 _punkIndex, uint256 _minSalePriceInWei): # not payable
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require _punkIndex < 10000
+  punksOfferedForSale[_punkIndex].field_0 = 1
+  punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+  punksOfferedForSale[_punkIndex].field_512 = caller
+  punksOfferedForSale[_punkIndex].field_768 = _minSalePriceInWei
+  punksOfferedForSale[_punkIndex].field_1024 = 0
+  punksOfferedForSale[_punkIndex].field_1280 = 0
+  log PunkOffered(
+        uint256 punkIndex=_minSalePriceInWei,
+        uint256 minValue=_punkIndex,
+        address toAddress=0)
+
+def withdrawBidForPunk(uint256 _punkIndex): # not payable
+  require _punkIndex < 10000
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex]
+  require punkIndexTo[_punkIndex] != caller
+  require punkBids[_punkIndex].field_512 == caller
+  log PunkBidWithdrawn(
+        uint256 punkIndex=punkBids[_punkIndex].field_768,
+        uint256 value=_punkIndex,
+        address fromAddress=caller)
+  punkBids[_punkIndex].field_0 = 0
+  punkBids[_punkIndex].field_256 = _punkIndex
+  punkBids[_punkIndex].field_512 = 0
+  punkBids[_punkIndex].field_768 = 0
+  punkBids[_punkIndex].field_768 = 0
+  call caller with:
+     value punkBids[_punkIndex].field_768 wei
+       gas 2300 * is_zero(value) wei
+  require ext_call.success
+
+def enterBidForPunk(uint256 _punkIndex) payable: 
+  require _punkIndex < 10000
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex]
+  require punkIndexTo[_punkIndex] != caller
+  require call.value
+  require call.value > punkBids[_punkIndex].field_768
+  if punkBids[_punkIndex].field_768 > 0:
+      pendingWithdrawals[stor13[_punkIndex].field_512] += punkBids[_punkIndex].field_768
+  punkBids[_punkIndex].field_0 = 1
+  punkBids[_punkIndex].field_256 = _punkIndex
+  punkBids[_punkIndex].field_512 = caller
+  punkBids[_punkIndex].field_768 = call.value
+  log PunkBidEntered(
+        uint256 punkIndex=call.value,
+        uint256 value=_punkIndex,
+        address fromAddress=caller)
+
+def transferPunk(address _to, uint256 _punkIndex): # not payable
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require _punkIndex < 10000
+  if punksOfferedForSale[_punkIndex].field_0:
+      require allPunksAssigned
+      require punkIndexTo[_punkIndex] == caller
+      require _punkIndex < 10000
+      punksOfferedForSale[_punkIndex].field_0 = 0
+      punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+      punksOfferedForSale[_punkIndex].field_512 = caller
+      punksOfferedForSale[_punkIndex].field_768 = 0
+      punksOfferedForSale[_punkIndex].field_1024 = 0
+      log PunkNoLongerForSale(uint256 punkIndex=_punkIndex)
+  punkIndexTo[_punkIndex] = _to
+  balanceOf[caller]--
+  balanceOf[_to]++
+  log Transfer(
+        address from=1,
+        address to=caller,
+        uint256 value=_to)
+  log PunkTransfer(
+        address from=_punkIndex,
+        address to=caller,
+        uint256 punkIndex=_to)
+  if punkBids[_punkIndex].field_512 == _to:
+      pendingWithdrawals[addr(_to)] += punkBids[_punkIndex].field_768
+      punkBids[_punkIndex].field_0 = 0
+      punkBids[_punkIndex].field_256 = _punkIndex
+      punkBids[_punkIndex].field_512 = 0
+      punkBids[_punkIndex].field_768 = 0
+      punkBids[_punkIndex].field_768 = 0
+
+def acceptBidForPunk(uint256 _punkIndex, uint256 _minPrice): # not payable
+  require _punkIndex < 10000
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require punkBids[_punkIndex].field_768
+  require punkBids[_punkIndex].field_768 >= _minPrice
+  punkIndexTo[_punkIndex] = punkBids[_punkIndex].field_512
+  balanceOf[caller]--
+  balanceOf[stor13[_punkIndex].field_512]++
+  log Transfer(
+        address from=1,
+        address to=caller,
+        uint256 value=punkBids[_punkIndex].field_512)
+  punksOfferedForSale[_punkIndex].field_0 = 0
+  punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+  punksOfferedForSale[_punkIndex].field_512 = punkBids[_punkIndex].field_512
+  punksOfferedForSale[_punkIndex].field_768 = 0
+  punksOfferedForSale[_punkIndex].field_1024 = 0
+  punksOfferedForSale[_punkIndex].field_1280 = 0
+  punkBids[_punkIndex].field_0 = 0
+  punkBids[_punkIndex].field_256 = _punkIndex
+  punkBids[_punkIndex].field_512 = 0
+  punkBids[_punkIndex].field_768 = 0
+  punkBids[_punkIndex].field_768 = 0
+  pendingWithdrawals[caller] += punkBids[_punkIndex].field_768
+  log PunkBought(
+        uint256 punkIndex=punkBids[_punkIndex].field_768,
+        uint256 value=_punkIndex,
+        address fromAddress=caller,
+        address toAddress=punkBids[_punkIndex].field_512)
+
+def buyPunk(uint256 _punkIndex) payable: 
+  require allPunksAssigned
+  require _punkIndex < 10000
+  require punksOfferedForSale[_punkIndex].field_0
+  if punksOfferedForSale[_punkIndex].field_1024:
+      require punksOfferedForSale[_punkIndex].field_1024 == caller
+  require call.value >= punksOfferedForSale[_punkIndex].field_768
+  require punkIndexTo[_punkIndex] == punksOfferedForSale[_punkIndex].field_512
+  punkIndexTo[_punkIndex] = caller
+  balanceOf[stor12[_punkIndex].field_512]--
+  balanceOf[caller]++
+  log Transfer(
+        address from=1,
+        address to=punksOfferedForSale[_punkIndex].field_512,
+        uint256 value=caller)
+  require allPunksAssigned
+  require punkIndexTo[_punkIndex] == caller
+  require _punkIndex < 10000
+  punksOfferedForSale[_punkIndex].field_0 = 0
+  punksOfferedForSale[_punkIndex].field_256 = _punkIndex
+  punksOfferedForSale[_punkIndex].field_512 = caller
+  punksOfferedForSale[_punkIndex].field_768 = 0
+  punksOfferedForSale[_punkIndex].field_1024 = 0
+  log PunkNoLongerForSale(uint256 punkIndex=_punkIndex)
+  pendingWithdrawals[stor12[_punkIndex].field_512] += call.value
+  log PunkBought(
+        uint256 punkIndex=call.value,
+        uint256 value=_punkIndex,
+        address fromAddress=punksOfferedForSale[_punkIndex].field_512,
+        address toAddress=caller)
+  if punkBids[_punkIndex].field_512 == caller:
+      pendingWithdrawals[caller] += punkBids[_punkIndex].field_768
+      punkBids[_punkIndex].field_0 = 0
+      punkBids[_punkIndex].field_256 = _punkIndex
+      punkBids[_punkIndex].field_512 = 0
+      punkBids[_punkIndex].field_768 = 0
+      punkBids[_punkIndex].field_768 = 0
+
+def setInitialOwners(address[] _addresses, uint256[] _indices): # not payable
+  mem[128 len 32 * _addresses.length] = call.data[_addresses + 36 len 32 * _addresses.length]
+  mem[(32 * _addresses.length) + 128] = _indices.length
+  mem[(32 * _addresses.length) + 160 len 32 * _indices.length] = call.data[_indices + 36 len 32 * _indices.length]
+  require stor1 == caller
+  idx = 0
+  while idx < _addresses.length:
+      require idx < _addresses.length
+      _21 = mem[(32 * idx) + 128]
+      require idx < _indices.length
+      require stor1 == caller
+      require not allPunksAssigned
+      require mem[(32 * idx) + (32 * _addresses.length) + 160] < 10000
+      mem[0] = mem[(32 * idx) + (32 * _addresses.length) + 160]
+      mem[32] = 10
+      if punkIndexTo[mem[(32 * idx) + (32 * _addresses.length) + 160]] != mem[(32 * idx) + 140 len 20]:
+          if not punkIndexTo[mem[(32 * idx) + (32 * _addresses.length) + 160]]:
+              punksRemainingToAssign--
+          else:
+              balanceOf[stor10[mem[(32 * idx) + (32 * _addresses.length) + 160]]]--
+          punkIndexTo[mem[(32 * idx) + (32 * _addresses.length) + 160]] = mem[(32 * idx) + 140 len 20]
+          mem[0] = mem[(32 * idx) + 140 len 20]
+          mem[32] = 11
+          balanceOf[addr(mem[(32 * idx) + 128])]++
+          mem[(32 * _indices.length) + (32 * _addresses.length) + 160] = mem[(32 * idx) + (32 * _addresses.length) + 160]
+          log Assign(
+                address to=mem[(32 * _indices.length) + (32 * _addresses.length) + 160],
+                uint256 punkIndex=addr(_21))
+      idx = idx + 1
+      continue 
+
