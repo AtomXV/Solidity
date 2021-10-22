@@ -25,7 +25,6 @@ contract CryptoPunksMarket {
     mapping (uint => address) public punkIndexToAddress;
 
     /* This creates an array with all balances */
-    //AAAA
     mapping (address => uint256) public balanceOf;
 
     struct Offer {
